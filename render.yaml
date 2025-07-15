@@ -1,0 +1,54 @@
+services:
+  # Web Service
+  - type: web
+    name: mcp-gmail-agent
+    runtime: python
+    region: oregon # optional, defaults to oregon
+    plan: free # or "starter", "standard", "pro"
+    
+    # Build configuration
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --threads 2
+    
+    # Environment variables
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: SECRET_KEY
+        generateValue: true # Render will generate a random value
+      - key: OPENAI_API_KEY
+        sync: false # Set manually in Render dashboard
+      - key: MCP_TOOL_URL
+        sync: false # Set manually in Render dashboard
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        fromService:
+          type: web
+          name: mcp-gmail-agent
+          property: port
+    
+    # Health check
+    healthCheckPath: /api/user-info
+    
+    # Auto-deploy from GitHub
+    autoDeploy: true # Automatically deploy on push to main branch
+    
+    # Scaling (for paid plans)
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 80
+      targetCPUPercent: 80
+
+# Optional: Database service if needed
+# - type: postgres
+#   name: mcp-gmail-db
+#   region: oregon
+#   plan: free
+#   databaseName: mcp_gmail
+#   user: mcp_user
+#   
+#   envVars:
+#     - key: ENCODING
+#       value: UTF8
