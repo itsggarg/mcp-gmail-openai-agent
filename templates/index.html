@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Agent - MCP OpenAI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gmail Agent</h1>
+            <div class="user-info">
+                <svg class="user-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span id="userEmail">{{ user_email }}</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="task-section">
+                <h2>Enter Your Task</h2>
+                <p class="description">
+                    Enter a task for the Gmail Agent to execute. For example:<br>
+                    "Send 'Hello' to example@email.com" or "Check my latest emails"
+                </p>
+                
+                <form id="taskForm">
+                    <div class="input-group">
+                        <textarea 
+                            id="taskInput" 
+                            name="task" 
+                            placeholder="Enter your task here..."
+                            rows="4"
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <button type="submit" id="submitBtn">
+                        <span class="btn-text">Execute Task</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+            </div>
+
+            <div id="resultSection" class="result-section" style="display: none;">
+                <h3>Result</h3>
+                <div id="resultContent" class="result-content"></div>
+            </div>
+
+            <div id="errorSection" class="error-section" style="display: none;">
+                <h3>Error</h3>
+                <div id="errorContent" class="error-content"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
