@@ -7,12 +7,11 @@ through REST API endpoints.
 import os
 import asyncio
 import logging
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from agent import build_agent
 from agents import Runner
 from dotenv import load_dotenv
-import secrets
 from concurrent.futures import ThreadPoolExecutor
 import nest_asyncio
 
@@ -31,13 +30,12 @@ load_dotenv()
 
 # Initialize Flask application
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(16))
 
 # Configure CORS for API access
 CORS(app)
 
 # Configuration constants
-DEFAULT_USER_EMAIL = os.getenv('DEFAULT_USER_EMAIL', 'user@gmail.com')
+USER_EMAIL = os.getenv('USER_EMAIL', 'user@gmail.com')
 MAX_WORKERS = int(os.getenv('MAX_WORKERS', 5))
 TASK_TIMEOUT = int(os.getenv('TASK_TIMEOUT', 60))
 
@@ -121,16 +119,11 @@ def index():
     """
     Render the main application page.
     
-    Sets user email in session if not already present.
-    
     Returns:
-        str: Rendered HTML template
+        str: Rendered HTML template with user email
     """
-    if 'user_email' not in session:
-        session['user_email'] = DEFAULT_USER_EMAIL
-        logger.info(f"New session created for user: {DEFAULT_USER_EMAIL}")
-    
-    return render_template('index.html', user_email=session['user_email'])
+    logger.info(f"Serving index page for user: {USER_EMAIL}")
+    return render_template('index.html', user_email=USER_EMAIL)
 
 
 @app.route('/api/execute-task', methods=['POST'])
@@ -163,7 +156,7 @@ def execute_task():
             return jsonify({'error': 'Task is required'}), 400
         
         # Log task request
-        logger.info(f"Received task request from {session.get('user_email', 'unknown')}")
+        logger.info(f"Received task request for user: {USER_EMAIL}")
         
         # Execute task asynchronously with timeout
         future = executor.submit(run_async_task, task)
@@ -174,7 +167,7 @@ def execute_task():
             return jsonify({
                 'success': True,
                 'result': result['result'],
-                'user_email': session.get('user_email', DEFAULT_USER_EMAIL)
+                'user_email': USER_EMAIL
             })
         else:
             return jsonify({
@@ -195,19 +188,6 @@ def execute_task():
             'success': False,
             'error': 'An unexpected error occurred'
         }), 500
-
-
-@app.route('/api/user-info', methods=['GET'])
-def get_user_info():
-    """
-    Get current user information.
-    
-    Returns:
-        JSON response with user email
-    """
-    return jsonify({
-        'email': session.get('user_email', DEFAULT_USER_EMAIL)
-    })
 
 
 @app.route('/health')
@@ -244,6 +224,7 @@ if __name__ == '__main__':
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     
     logger.info(f"Starting Gmail Agent API on port {port}")
+    logger.info(f"Configured for user: {USER_EMAIL}")
     
     # Note: In production, use a proper WSGI server like Gunicorn
     # This direct Flask run should only be used for development
